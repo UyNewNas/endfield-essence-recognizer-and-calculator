@@ -77,7 +77,10 @@ def _log_farming_plans(profile_id: str) -> None:
         rarity_map = load_weapon_rarity()
         weapon_info = load_weapon_info()
         
-        if profile_id == "default":
+        if profile_id == "temp":
+            logger.opt(colors=True).info("<yellow>临时账号模式，不保存武器数据，跳过刷取方案计算</>")
+            return
+        elif profile_id == "default":
             remaining_weapons = list(weapon_info.keys())
             profile_display = "默认账号"
         else:
@@ -171,9 +174,9 @@ def _create_scanner_engine_with_callback(profile_id: Optional[str] = None) -> Sc
     on_treasure_found = None
     on_scan_complete = None
     
-    effective_profile_id = profile_id if profile_id else "default"
+    effective_profile_id = profile_id if profile_id else "temp"
     
-    if effective_profile_id and effective_profile_id != "default":
+    if effective_profile_id and effective_profile_id not in ("temp", "default"):
         static_data = get_static_game_data()
         
         def on_treasure_found_callback(stats_names: list[str], weapon_ids: list[str]) -> None:

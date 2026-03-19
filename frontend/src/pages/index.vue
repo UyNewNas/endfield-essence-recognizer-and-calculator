@@ -69,17 +69,19 @@ import { nextTick, onMounted, ref, watch, computed } from 'vue'
 import { clearLogs, logs } from '@/composables/useLogs'
 
 const autoScroll = ref(true)
-const selectedProfile = ref<string>('default')
+const selectedProfile = ref<string>('')
 const profiles = ref<Array<{id: string, name: string, weapon_count: number}>>([])
 const showAddProfileDialog = ref(false)
 const newProfileName = ref('')
 
+const LAST_PROFILE_KEY = 'endfield_last_selected_profile'
+
 const profileItems = computed(() => {
   if (profiles.value.length === 0) {
-    return [{ id: 'default', name: '默认账号(default)', weapon_count: 0 }]
+    return [{ id: 'temp', name: '临时账号(不保存数据)', weapon_count: 0 }]
   }
   return [
-    { id: 'default', name: '默认账号(default)', weapon_count: 0 },
+    { id: 'temp', name: '临时账号(不保存数据)', weapon_count: 0 },
     ...profiles.value.map(p => ({
       id: p.id,
       name: `${p.name}(${p.id.slice(0, 6)})`,
@@ -93,7 +95,7 @@ function toggleAutoScroll() {
 }
 
 async function startScanning() {
-  const profileId = selectedProfile.value || 'default'
+  const profileId = selectedProfile.value || 'temp'
   await fetch('/api/start_scanning', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -153,8 +155,29 @@ watch(
   { deep: true },
 )
 
+watch(selectedProfile, (newVal) => {
+  if (newVal && newVal !== 'temp') {
+    localStorage.setItem(LAST_PROFILE_KEY, newVal)
+  } else {
+    localStorage.removeItem(LAST_PROFILE_KEY)
+  }
+})
+
 onMounted(async () => {
   await loadProfiles()
+  
+  const lastProfile = localStorage.getItem(LAST_PROFILE_KEY)
+  if (lastProfile) {
+    const profileExists = profiles.value.some(p => p.id === lastProfile)
+    if (profileExists) {
+      selectedProfile.value = lastProfile
+    } else {
+      selectedProfile.value = 'temp'
+    }
+  } else {
+    selectedProfile.value = 'temp'
+  }
+  
   nextTick(() => {
     const logsContainer = document.querySelector('#log-card')
     if (logsContainer) {
