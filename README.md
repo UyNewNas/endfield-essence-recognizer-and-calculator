@@ -3,6 +3,7 @@
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Vue.js](https://img.shields.io/badge/Vue.js-3.x-green.svg?logo=vue.js)](https://vuejs.org/)
 [![Vuetify](https://img.shields.io/badge/Vuetify-3.x-lightblue.svg?logo=vuetify)](https://vuetifyjs.com/)
+[![QQ群](https://img.shields.io/badge/QQ群-2166033537-orange.svg?logo=qq)](https://qm.qq.com/cgi-bin/qm/qr?k=YOUR_QQ_KEY)
 
 > **Fork 自 [Logical-Byte/endfield-essence-recognizer](https://github.com/Logical-Byte/endfield-essence-recognizer)**
 
@@ -95,6 +96,12 @@
 ### 5. 识别到的基质始终是同一个
 
 请确保终末地的分辨率为 **1920×1080 窗口**。若您的显示器分辨率为 1920×1080，请将终末地的分辨率更改为 1920×1080 全屏后按下 **Alt+Enter 切换为窗口模式**。
+
+## 联系方式
+
+如果在使用过程中遇到任何问题，或是想提出建议，欢迎：
+- **[在 GitHub 上提 Issue](https://github.com/UyNewNas/endfield-essence-recognizer-and-calculator/issues)**
+- **加入QQ群：[2166033537](https://qm.qq.com/cgi-bin/qm/qr?k=YOUR_QQ_KEY)**
 
 ## 说明
 
