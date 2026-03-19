@@ -32,8 +32,8 @@ class ScannerService:
             audio_service: Optional AudioService for notification sounds.
         """
         self._thread: threading.Thread | None = None
-        self._stop_event = threading.Event()  # Event to signal the thread to stop
-        self._lock = threading.RLock()  # Reentrant lock for nested locking
+        self._stop_event = threading.Event()
+        self._lock = threading.RLock()
         self._audio_service = audio_service
 
     def start_scan(self, scanner_factory: Callable[[], AutomationEngine]) -> None:
@@ -51,7 +51,6 @@ class ScannerService:
                 logger.warning("扫描已在运行中。")
                 return
 
-            # If there's a dead thread from a previous run, ensure it's joined
             if self._thread is not None:
                 self._thread.join()
 
@@ -111,10 +110,8 @@ class ScannerService:
         Uses a single lock to ensure atomicity of the toggle operation.
 
         Args:
-            scanner_factory: A callable that returns an AutomationEngine instance. Called if starting a scan.
+            scanner_factory: A callable that returns an AutomationEngine instance.
         """
-        # Use a single lock for the whole toggle operation to prevent races
-        # between checking and acting. RLock allows us to call start/stop internally.
         with self._lock:
             if self.is_running():
                 self.stop_scan()

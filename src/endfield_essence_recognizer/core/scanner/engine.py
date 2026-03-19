@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import itertools
 import threading
+from typing import TYPE_CHECKING, Callable, Optional
 
 from endfield_essence_recognizer.core.interfaces import ImageSource, WindowActions
 from endfield_essence_recognizer.core.layout.base import ResolutionProfile
@@ -25,6 +28,10 @@ from endfield_essence_recognizer.core.window.adapter import InMemoryImageSource
 from endfield_essence_recognizer.schemas.user_setting import UserSetting
 from endfield_essence_recognizer.services.user_setting_manager import UserSettingManager
 from endfield_essence_recognizer.utils.log import logger
+
+if TYPE_CHECKING:
+    TreasureFoundCallback = Callable[[list[str], list[str]], None]
+    ScanCompleteCallback = Callable[[list[tuple[list[str], list[str]]]], None]
 
 
 def check_scene(
@@ -233,12 +240,16 @@ class ScannerEngine:
         window_actions: WindowActions,
         user_setting_manager: UserSettingManager,
         profile: ResolutionProfile,
+        on_treasure_found: Optional[TreasureFoundCallback] = None,
+        on_scan_complete: Optional[ScanCompleteCallback] = None,
     ) -> None:
         self.ctx: ScannerContext = ctx
         self._image_source = image_source
         self._window_actions = window_actions
         self._user_setting_manager: UserSettingManager = user_setting_manager
         self._profile: ResolutionProfile = profile
+        self._on_treasure_found: Optional[TreasureFoundCallback] = on_treasure_found
+        self._on_scan_complete: Optional[ScanCompleteCallback] = on_scan_complete
 
         from endfield_essence_recognizer.utils.log import str_properties_and_attrs
 
@@ -270,7 +281,6 @@ class ScannerEngine:
             self._window_actions.wait(0.5)
 
         if self._window_actions.show():
-            # make the window visible in the beginning
             self._window_actions.wait(0.5)
 
         logger.debug("Made the window visible and active.")
@@ -279,11 +289,12 @@ class ScannerEngine:
         if not check_scene_result:
             return
 
-        # 获取当前用户设置的快照，用于接下来的判断
         user_setting = self._user_setting_manager.get_user_setting()
 
         icon_x_list = self._profile.essence_icon_x_list
         icon_y_list = self._profile.essence_icon_y_list
+        
+        treasure_weapons_found: list[tuple[list[str], list[str]]] = []
 
         for (i, relative_y), (j, relative_x) in itertools.product(
             enumerate(icon_y_list), enumerate(icon_x_list)
@@ -298,13 +309,10 @@ class ScannerEngine:
 
             logger.info(f"正在扫描第 {i + 1} 行第 {j + 1} 列的基质...")
 
-            # 点击基质图标位置
             self._window_actions.click(relative_x, relative_y)
 
-            # 等待短暂时间以确保界面更新
             self._window_actions.wait(0.3)
 
-            # 识别基质信息
             data = recognize_essence(
                 self._image_source,
                 self.ctx,
@@ -315,12 +323,10 @@ class ScannerEngine:
                 data.abandon_label == AbandonStatusLabel.MAYBE_ABANDONED
                 or data.lock_label == LockStatusLabel.MAYBE_LOCKED
             ):
-                # early continue on uncertain recognition
                 continue
 
             evaluation = evaluate_essence(data, user_setting, self.ctx.static_game_data)
 
-            # Log the result
             if (
                 evaluation.quality == EssenceQuality.TRASH
                 and evaluation.matched_weapons
@@ -329,10 +335,34 @@ class ScannerEngine:
             else:
                 logger.opt(colors=True).success(evaluation.log_message)
 
-            # Decide actions
+            if (
+                evaluation.quality == EssenceQuality.TREASURE
+                and evaluation.matched_weapons
+            ):
+                stats_names = []
+                for stat_id in data.stats:
+                    if stat_id:
+                        stat = self.ctx.static_game_data.get_stat(stat_id)
+                        stats_names.append(stat.name if stat else stat_id)
+                    else:
+                        stats_names.append("未知")
+                
+                weapon_names = []
+                for weapon_id in evaluation.matched_weapons:
+                    weapon = self.ctx.static_game_data.get_weapon(weapon_id)
+                    if weapon:
+                        weapon_names.append(weapon.name)
+                
+                treasure_weapons_found.append((stats_names, weapon_names))
+                
+                if self._on_treasure_found:
+                    try:
+                        self._on_treasure_found(stats_names, list(evaluation.matched_weapons))
+                    except Exception as e:
+                        logger.error(f"宝藏回调执行失败: {e}")
+
             actions = decide_actions(data, evaluation, user_setting)
 
-            # Execute actions
             for action in actions:
                 if action.type == ActionType.CLICK_LOCK:
                     pos = self._profile.LOCK_BUTTON_POS
@@ -345,5 +375,20 @@ class ScannerEngine:
                 logger.success(action.log_message)
 
         else:
-            # 扫描完成
             logger.info("基质扫描完成。")
+            
+            if treasure_weapons_found:
+                unique_weapons: set[str] = set()
+                for stats_names, weapon_names in treasure_weapons_found:
+                    unique_weapons.update(weapon_names)
+                
+                logger.opt(colors=True).success(
+                    f"本次扫描发现 <green>{len(treasure_weapons_found)}</> 个宝藏基质，"
+                    f"完美契合武器: <magenta>{'、'.join(sorted(unique_weapons))}</>"
+                )
+            
+            if self._on_scan_complete:
+                try:
+                    self._on_scan_complete(treasure_weapons_found)
+                except Exception as e:
+                    logger.error(f"扫描完成回调执行失败: {e}")

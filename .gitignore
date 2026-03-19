@@ -5,6 +5,7 @@ build/
 dist/
 wheels/
 *.egg-info
+locals/
 
 # Virtual environments
 .venv
@@ -18,6 +19,10 @@ screenshots/
 # local app settings
 config.json
 .env
+.gitignore
+
+# user profiles data
+user_profiles/
 
 # enfield data table config
 src/endfield_essence_recognizer/data/endfielddata/TableCfg/**.json
