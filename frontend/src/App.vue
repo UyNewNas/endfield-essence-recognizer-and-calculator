@@ -3,7 +3,7 @@
     <v-navigation-drawer v-model="drawer">
       <v-card class="pa-4" rounded="0" to="/" variant="flat">
         <logo class="d-block mb-4 w-50 h-auto mx-auto" />
-        <h1 class="text-center ma-4">终末地基质<br />妙妙小工具</h1>
+        <h1 class="text-center ma-4">终末地基质<br />管理工具</h1>
       </v-card>
       <v-divider />
       <v-list density="comfortable" nav>
@@ -21,7 +21,7 @@
 
     <v-app-bar app color="primary" density="comfortable" flat>
       <v-app-bar-nav-icon @click="drawer = !drawer" />
-      <v-app-bar-title>{{ route.meta?.title || '终末地基质妙妙小工具' }}</v-app-bar-title>
+      <v-app-bar-title>{{ route.meta?.title || '终末地基质管理工具' }}</v-app-bar-title>
       <template #append>
         <v-btn icon="mdi-update" @click="checkForUpdates(true)" />
         <v-tooltip location="start">

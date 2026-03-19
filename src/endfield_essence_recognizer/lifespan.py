@@ -18,7 +18,7 @@ def log_welcome_message():
     """Log a formatted welcome and usage guide message to the logger."""
     message = """
 ==================================================
-<green><bold>终末地基质妙妙小工具已启动</></>
+<green><bold>终末地基质管理工具已启动</></>
 ==================================================
 <green><bold>使用前阅读：</></>
   - 请使用<yellow><bold>管理员权限</></>运行本工具，否则无法捕获全局热键

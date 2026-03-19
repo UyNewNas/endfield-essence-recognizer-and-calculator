@@ -50,9 +50,9 @@ const router = createRouter({
 
 router.afterEach((to) => {
   if (to.meta.title) {
-    document.title = `${to.meta.title} - 终末地基质妙妙小工具`
+    document.title = `${to.meta.title} - 终末地基质管理工具`
   } else {
-    document.title = '终末地基质妙妙小工具'
+    document.title = '终末地基质管理工具'
   }
 })
 
