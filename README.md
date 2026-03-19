@@ -1,22 +1,42 @@
-# 终末地基质妙妙小工具
+# 终末地基质管理工具
 
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Vue.js](https://img.shields.io/badge/Vue.js-3.x-green.svg?logo=vue.js)](https://vuejs.org/)
 [![Vuetify](https://img.shields.io/badge/Vuetify-3.x-lightblue.svg?logo=vuetify)](https://vuetifyjs.com/)
-[![①群](https://img.shields.io/badge/①群-486622964-orange.svg?logo=qq)](https://qm.qq.com/cgi-bin/qm/qr?k=1xqRp7JwQHwGswa-8_SMFuAsRYYRnF8J)
-[![②群](https://img.shields.io/badge/②群-1082880855-orange.svg?logo=qq)](https://qm.qq.com/cgi-bin/qm/qr?k=qAmvmHCc3HuESiJhZVe6Ytgj7foOxXx9)
-[![官网](https://img.shields.io/badge/官网-终末地一图流-yellow.svg)](https://ef.yituliu.cn/resources/essence-recognizer)
 
-不知道哪些基质该留哪些该扔？想要当狗粮又担心万一这个基质有用？快来逝逝终末地基质妙妙小工具罢！
+> **Fork 自 [Logical-Byte/endfield-essence-recognizer](https://github.com/Logical-Byte/endfield-essence-recognizer)**
 
-官网（下载最新版）：[https://ef.yituliu.cn/resources/essence-recognizer](https://ef.yituliu.cn/resources/essence-recognizer)
+不知道哪些基质该留哪些该扔？想要当狗粮又担心万一这个基质有用？快来逝逝终末地基质管理工具罢！
 
-反馈交流群
-- ①群：[486622964](https://qm.qq.com/cgi-bin/qm/qr?k=1xqRp7JwQHwGswa-8_SMFuAsRYYRnF8J)
-- ②群：[1082880855](https://qm.qq.com/cgi-bin/qm/qr?k=qAmvmHCc3HuESiJhZVe6Ytgj7foOxXx9)
+本工具在原版基础上新增了**用户账号管理**和**刷取方案计算器**功能，帮助你更高效地规划基质刷取策略。
 
-![终末地基质小助手展示](https://cos.yituliu.cn/endfield/endfield-essence-recognizer/assets/终末地基质小助手展示_0.webp)
-![终末地基质小助手展示](https://cos.yituliu.cn/endfield/endfield-essence-recognizer/assets/终末地基质小助手展示_1.webp)
+## 新增功能
+
+### 用户账号管理
+- 支持多账号管理，每个账号独立记录已获取的完美基质武器
+- 前端账号下拉选择器，方便切换不同账号
+- 扫描时自动记录获取的完美基质武器
+
+### 刷取方案计算器
+扫描完成后自动计算并推荐最优刷取方案：
+
+- **完美覆盖**：武器的3个需求词条全部包含在方案的4个词条中
+- **部分匹配**：武器的需求词条中有2个包含在方案中
+- **智能评分**：完美覆盖=稀有度值，部分匹配=稀有度×0.5
+- **优先级排序**：高星武器完美覆盖数 > 总分 > 覆盖数量
+- **去重显示**：相同词条组合仅保留一个地点
+
+示例输出：
+```
+方案 1
+  刷取地点: 重度能量淤积点·枢纽区：
+  基础属性: 敏捷提升、意志提升、智识提升
+  附加属性: 攻击提升
+  完美覆盖 2 把，部分匹配 8 把，总分 23.5
+  高星武器完美覆盖: 2 把
+  完全覆盖武器: 典范、赫拉芬格
+  部分匹配武器: 不知归、宏愿、热熔切割器...
+```
 
 ## 使用前准备
 
@@ -40,7 +60,7 @@
 
 ## 常见问题
 
-### 1. 双击运行时遇到“Unhandled exception in script”弹窗报错
+### 1. 双击运行时遇到"Unhandled exception in script"弹窗报错
 
 ![遇到报错解决方法](https://cos.yituliu.cn/endfield/endfield-essence-recognizer/assets/遇到报错解决方法.webp)
 
@@ -76,22 +96,19 @@
 
 请确保终末地的分辨率为 **1920×1080 窗口**。若您的显示器分辨率为 1920×1080，请将终末地的分辨率更改为 1920×1080 全屏后按下 **Alt+Enter 切换为窗口模式**。
 
-## 联系我们
-
-如果在使用过程中遇到任何问题，或是想提出建议，欢迎 **[在 GitHub 上提 Issue](https://github.com/Logical-Byte/endfield-essence-recognizer)**，或者加入反馈交流群：
-- ①群：[486622964](https://qm.qq.com/cgi-bin/qm/qr?k=1xqRp7JwQHwGswa-8_SMFuAsRYYRnF8J)
-- ②群：[1082880855](https://qm.qq.com/cgi-bin/qm/qr?k=qAmvmHCc3HuESiJhZVe6Ytgj7foOxXx9)
-
 ## 说明
 
 - 机器识别，可能存在错误。若发现错误，欢迎反馈。
 - 工具仅检索基质是否匹配已实装的武器，而没有能力预测是否能匹配未实装的武器。至于一个基质未来有没有用，你可以给海猫打个电话（
-- 本工具按“原样”提供，作者不对可用性、准确性或使用效果作出任何保证。
+- 本工具按"原样"提供，作者不对可用性、准确性或使用效果作出任何保证。
 - 使用者必须确保使用本工具符合相关法律法规与服务条款，禁止用于任何违法或侵权行为。
 - 使用者需承担因使用本工具产生的任何风险、损失或责任。
 - 使用本工具即意味着您同意以上全部内容。
 
-
 ## 贡献指南
 
 欢迎提交 Issue 和 Pull Request！如果您想为本项目提交 Issue 或代码贡献，请阅读 [CONTRIBUTING.md](CONTRIBUTING.md) 了解详细的贡献规范和流程。
+
+## 致谢
+
+本项目基于 [Logical-Byte/endfield-essence-recognizer](https://github.com/Logical-Byte/endfield-essence-recognizer) 开发，感谢原作者的优秀工作！
