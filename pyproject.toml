@@ -1,6 +1,6 @@
 [project]
 name = "endfield-essence-recognizer"
-version = "0.6.0"
+version = "0.1.0"
 description = "终末地基质管理工具 - 帮助你高效管理武器基质"
 readme = "README.md"
 requires-python = ">=3.12"
