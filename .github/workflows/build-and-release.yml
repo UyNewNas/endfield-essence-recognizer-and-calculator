@@ -41,13 +41,27 @@ jobs:
       - name: Install dependencies
         run: |
           uv sync --no-dev --group build
+          uv pip install -e .
 
       - name: Build with PyInstaller
         run: |
           uv run pyinstaller main.spec
 
+      - name: List dist directory (debug)
+        run: |
+          if (Test-Path dist) {
+            Get-ChildItem -Path dist -Recurse | Select-Object FullName
+          } else {
+            Write-Error "dist directory does not exist!"
+            exit 1
+          }
+
       - name: Add alert file
         run: |
+          if (-not (Test-Path dist/endfield-essence-recognizer)) {
+            Write-Error "dist/endfield-essence-recognizer directory does not exist!"
+            exit 1
+          }
           New-Item -Path dist/endfield-essence-recognizer/ -Name "使用前请先解压全部文件！.txt" -ItemType "file"
 
       - name: Zip the built files
