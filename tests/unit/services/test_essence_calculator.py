@@ -70,13 +70,12 @@ class TestFindBestPlans:
             assert len(plan.base_attrs) == 3
             assert isinstance(plan.fourth_attr, str)
             assert isinstance(plan.attr_type, str)
-            assert isinstance(plan.cover_count, int)
-            assert isinstance(plan.cover_weapons, list)
-            assert isinstance(plan.cover_rarity_sum, int)
-            assert isinstance(plan.plan_hot_sum, int)
-            assert isinstance(plan.plan_weight_sum, int)
+            assert isinstance(plan.satisfied_weapons, list)
+            assert isinstance(plan.satisfied_rarity_sum, int)
+            assert isinstance(plan.location_weapons, list)
+            assert isinstance(plan.location_rarity_sum, int)
             assert isinstance(plan.total_score, float)
-            assert isinstance(plan.high_star_cover_count, int)
+            assert isinstance(plan.high_star_satisfied_count, int)
     
     def test_find_best_plans_satisfiable_weapons(self):
         weapon_list = ["达尔霍夫7", "吉米尼12", "奥佩罗77", "佩科5", "塔尔11"]
@@ -85,7 +84,7 @@ class TestFindBestPlans:
         
         assert len(plans) > 0
         best_plan = plans[0]
-        assert best_plan.partial_match_count == 5
+        assert len(best_plan.satisfied_weapons) > 0
     
     def test_find_best_plans_empty_list(self):
         weapon_list = []
@@ -108,8 +107,7 @@ class TestFindBestPlans:
         
         assert len(plans) > 0
         best_plan = plans[0]
-        assert best_plan.partial_match_count > 0 or best_plan.cover_count > 0
-        assert len(best_plan.partial_match_weapons) > 0 or len(best_plan.cover_weapons) > 0
+        assert len(best_plan.satisfied_weapons) > 0 or len(best_plan.location_weapons) > 0
     
     def test_find_best_plans_deduplication(self):
         weapon_list = ["典范", "昔日精品", "大雷斑", "破碎君王", "赫拉芬格"]

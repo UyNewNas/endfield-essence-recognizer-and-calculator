@@ -32,16 +32,12 @@ class FarmingPlan:
     base_attrs: List[str]
     fourth_attr: str
     attr_type: str
-    cover_count: int
-    cover_weapons: List[str]
-    cover_rarity_sum: int
-    plan_hot_sum: int
-    plan_weight_sum: int
-    partial_match_count: int
-    partial_match_weapons: List[str]
-    partial_match_rarity_sum: int
+    satisfied_weapons: List[str]
+    satisfied_rarity_sum: int
+    location_weapons: List[str]
+    location_rarity_sum: int
     total_score: float
-    high_star_cover_count: int
+    high_star_satisfied_count: int
 
 
 BASE_STATS = {"敏捷提升", "力量提升", "意志提升", "智识提升", "主能力提升"}
@@ -104,25 +100,6 @@ def load_location_data() -> Dict[str, Dict[str, List[str]]]:
         return json.load(f)
 
 
-def calculate_stat_metrics(
-    weapon_list: List[str],
-    weapon_info: Dict[str, WeaponInfo]
-) -> Tuple[Dict[str, int], Dict[str, int]]:
-    hot_count: Dict[str, int] = {}
-    rarity_weight: Dict[str, int] = {}
-    
-    for weapon_name in weapon_list:
-        if weapon_name not in weapon_info:
-            continue
-        
-        weapon = weapon_info[weapon_name]
-        for stat_name in weapon.requirements:
-            hot_count[stat_name] = hot_count.get(stat_name, 0) + 1
-            rarity_weight[stat_name] = rarity_weight.get(stat_name, 0) + weapon.rarity
-    
-    return hot_count, rarity_weight
-
-
 def find_best_plans(
     weapon_list: List[str],
     weapon_data: Dict[str, List[str]] = None,
@@ -141,8 +118,6 @@ def find_best_plans(
                 matched_weapons.append(name)
                 break
     
-    hot_count, rarity_weight = calculate_stat_metrics(matched_weapons, weapon_info)
-    
     plans: List[FarmingPlan] = []
     
     for location, categories in location_data.items():
@@ -150,67 +125,66 @@ def find_best_plans(
         skill_attrs = categories.get('技能属性', [])
         additional_attrs = categories.get('附加属性', [])
         
+        location_pool = set(base_attrs) | set(skill_attrs) | set(additional_attrs)
         other_attrs = skill_attrs + additional_attrs
+        
+        location_weapons = []
+        location_rarity_sum = 0
+        for weapon_name in matched_weapons:
+            weapon = weapon_info[weapon_name]
+            weapon_reqs = set(weapon.requirements)
+            if weapon_reqs <= location_pool:
+                location_weapons.append(weapon_name)
+                location_rarity_sum += weapon.rarity
         
         for base_combo in combinations(base_attrs, 3):
             base_set = set(base_combo)
             
             for other_attr in other_attrs:
-                plan_essences = base_set | {other_attr}
-                
                 attr_type = "技能属性" if other_attr in skill_attrs else "附加属性"
                 
-                cover_weapons = []
-                cover_rarity_sum = 0
-                partial_match_weapons = []
-                partial_match_rarity_sum = 0
-                high_star_cover_count = 0
+                satisfied_weapons = []
+                satisfied_rarity_sum = 0
+                high_star_satisfied_count = 0
                 total_score = 0.0
                 
                 for weapon_name in matched_weapons:
                     weapon = weapon_info[weapon_name]
                     weapon_reqs = set(weapon.requirements)
-                    matched_count = len(weapon_reqs & plan_essences)
                     
-                    if matched_count >= 3:
-                        cover_weapons.append(weapon_name)
-                        cover_rarity_sum += weapon.rarity
+                    has_match = False
+                    for base_attr in base_combo:
+                        combo = {base_attr, other_attr}
+                        if combo <= weapon_reqs:
+                            has_match = True
+                            break
+                    
+                    if has_match:
+                        satisfied_weapons.append(weapon_name)
+                        satisfied_rarity_sum += weapon.rarity
                         total_score += weapon.rarity
                         if weapon.rarity >= 5:
-                            high_star_cover_count += 1
-                    elif matched_count >= 2:
-                        partial_match_weapons.append(weapon_name)
-                        partial_match_rarity_sum += weapon.rarity
-                        total_score += weapon.rarity * 0.5
+                            high_star_satisfied_count += 1
                 
-                plan_hot_sum = sum(hot_count.get(s, 0) for s in plan_essences)
-                plan_weight_sum = sum(rarity_weight.get(s, 0) for s in plan_essences)
-                
-                total_match_count = len(cover_weapons) + len(partial_match_weapons)
-                
-                if total_match_count > 0 or plan_hot_sum > 0:
+                if len(satisfied_weapons) > 0:
                     plans.append(FarmingPlan(
                         location=location,
                         base_attrs=list(base_combo),
                         fourth_attr=other_attr,
                         attr_type=attr_type,
-                        cover_count=len(cover_weapons),
-                        cover_weapons=cover_weapons,
-                        cover_rarity_sum=cover_rarity_sum,
-                        plan_hot_sum=plan_hot_sum,
-                        plan_weight_sum=plan_weight_sum,
-                        partial_match_count=len(partial_match_weapons),
-                        partial_match_weapons=partial_match_weapons,
-                        partial_match_rarity_sum=partial_match_rarity_sum,
+                        satisfied_weapons=satisfied_weapons,
+                        satisfied_rarity_sum=satisfied_rarity_sum,
+                        location_weapons=location_weapons,
+                        location_rarity_sum=location_rarity_sum,
                         total_score=total_score,
-                        high_star_cover_count=high_star_cover_count
+                        high_star_satisfied_count=high_star_satisfied_count
                     ))
     
     plans.sort(key=lambda p: (
-        p.high_star_cover_count,
+        p.high_star_satisfied_count,
         p.total_score,
-        p.cover_count,
-        p.cover_rarity_sum
+        len(p.satisfied_weapons),
+        p.satisfied_rarity_sum
     ), reverse=True)
     
     seen_combos: Set[Tuple[Tuple[str, ...], str]] = set()

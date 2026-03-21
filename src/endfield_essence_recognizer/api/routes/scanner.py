@@ -118,12 +118,12 @@ def _log_farming_plans(profile_id: str) -> None:
         logger.info("=" * 60)
         
         for i, plan in enumerate(plans, 1):
-            sorted_cover = sorted(
-                plan.cover_weapons,
+            sorted_satisfied = sorted(
+                plan.satisfied_weapons,
                 key=lambda w: (-rarity_map.get(w, 0), w)
             )
-            sorted_partial = sorted(
-                plan.partial_match_weapons,
+            sorted_location = sorted(
+                plan.location_weapons,
                 key=lambda w: (-rarity_map.get(w, 0), w)
             )
             
@@ -133,24 +133,19 @@ def _log_farming_plans(profile_id: str) -> None:
             logger.info(f"  基础属性: {'、'.join(plan.base_attrs)}")
             logger.info(f"  {plan.attr_type}: {plan.fourth_attr}")
             
-            score_parts = []
-            if plan.cover_count > 0:
-                score_parts.append(f"完美覆盖 <green>{plan.cover_count}</> 把")
-            if plan.partial_match_count > 0:
-                score_parts.append(f"部分匹配 <yellow>{plan.partial_match_count}</> 把")
-            
             logger.opt(colors=True).info(
-                f"  {'，'.join(score_parts)}，"
+                f"  满足需求 <green>{len(plan.satisfied_weapons)}</> 把武器，"
+                f"匹配地点 <yellow>{len(plan.location_weapons)}</> 把武器，"
                 f"总分 <magenta>{plan.total_score:.1f}</>"
             )
-            if plan.high_star_cover_count > 0:
+            if plan.high_star_satisfied_count > 0:
                 logger.opt(colors=True).info(
-                    f"  <green>高星武器完美覆盖: {plan.high_star_cover_count} 把</>"
+                    f"  <green>高星武器满足需求: {plan.high_star_satisfied_count} 把</>"
                 )
-            if sorted_cover:
-                logger.info(f"  完全覆盖武器: {'、'.join(sorted_cover)}")
-            if sorted_partial:
-                logger.opt(colors=True).info(f"  <yellow>部分匹配武器</>: {'、'.join(sorted_partial)}")
+            if sorted_satisfied:
+                logger.info(f"  满足需求武器: {'、'.join(sorted_satisfied)}")
+            if sorted_location:
+                logger.opt(colors=True).info(f"  <yellow>匹配地点武器</>: {'、'.join(sorted_location)}")
         
         logger.info("=" * 60)
         
