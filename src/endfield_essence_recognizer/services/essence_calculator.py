@@ -10,6 +10,22 @@ V2_DIR = DATA_DIR / "v2"
 
 StatType = Literal["ATTRIBUTE", "SECONDARY", "SKILL"]
 
+WEAPON_TYPE_NAMES = {
+    "SWORD": "单手剑",
+    "CLAYM": "双手剑",
+    "LANCE": "长柄武器",
+    "PISTOL": "手铳",
+    "WAND": "施术单元",
+}
+
+WEAPON_TYPE_ORDER = {
+    "SWORD": 0,
+    "CLAYM": 1,
+    "LANCE": 2,
+    "PISTOL": 3,
+    "WAND": 4,
+}
+
 
 @dataclass
 class WeaponInfo:
@@ -17,6 +33,15 @@ class WeaponInfo:
     rarity: int
     requirements: List[str]
     non_base_count: int
+    weapon_type: str
+    
+    @property
+    def weapon_type_name(self) -> str:
+        return WEAPON_TYPE_NAMES.get(self.weapon_type, self.weapon_type)
+    
+    @property
+    def display_name(self) -> str:
+        return f"{self.name}（{self.rarity}星{self.weapon_type_name}）"
 
 
 @dataclass
@@ -72,6 +97,7 @@ def load_weapon_info() -> Dict[str, WeaponInfo]:
             continue
         
         rarity = info.get("rarity", 0)
+        weapon_type = info.get("weapon_type", "")
         requirements = []
         non_base_count = 0
         
@@ -88,7 +114,8 @@ def load_weapon_info() -> Dict[str, WeaponInfo]:
                 name=name,
                 rarity=rarity,
                 requirements=requirements,
-                non_base_count=non_base_count
+                non_base_count=non_base_count,
+                weapon_type=weapon_type
             )
     
     return result
@@ -98,6 +125,28 @@ def load_location_data() -> Dict[str, Dict[str, List[str]]]:
     location_file = DATA_DIR / "location_essence_data.json"
     with codecs.open(location_file, 'r', 'utf-8-sig') as f:
         return json.load(f)
+
+
+def sort_weapons(weapon_names: List[str], weapon_info: Dict[str, WeaponInfo]) -> List[str]:
+    def sort_key(name: str):
+        info = weapon_info.get(name)
+        if info:
+            return (-info.rarity, WEAPON_TYPE_ORDER.get(info.weapon_type, 999), name)
+        return (0, 999, name)
+    
+    return sorted(weapon_names, key=sort_key)
+
+
+def format_weapon_list(weapon_names: List[str], weapon_info: Dict[str, WeaponInfo]) -> str:
+    sorted_names = sort_weapons(weapon_names, weapon_info)
+    formatted = []
+    for name in sorted_names:
+        info = weapon_info.get(name)
+        if info:
+            formatted.append(info.display_name)
+        else:
+            formatted.append(name)
+    return "、".join(formatted)
 
 
 def find_best_plans(

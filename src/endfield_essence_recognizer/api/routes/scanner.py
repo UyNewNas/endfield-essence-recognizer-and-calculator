@@ -72,9 +72,13 @@ def _log_farming_plans(profile_id: str) -> None:
     Log farming plans for remaining weapons after scan completes.
     """
     try:
-        from endfield_essence_recognizer.services.essence_calculator import load_weapon_rarity, load_weapon_info
+        from endfield_essence_recognizer.services.essence_calculator import (
+            load_weapon_info,
+            find_best_plans,
+            format_weapon_list,
+            sort_weapons,
+        )
         
-        rarity_map = load_weapon_rarity()
         weapon_info = load_weapon_info()
         
         if profile_id == "temp":
@@ -97,15 +101,13 @@ def _log_farming_plans(profile_id: str) -> None:
             )
             return
         
-        sorted_weapons = sorted(
-            remaining_weapons,
-            key=lambda w: (-rarity_map.get(w, 0), w)
-        )
+        sorted_weapons = sort_weapons(remaining_weapons, weapon_info)
+        formatted_weapons = format_weapon_list(remaining_weapons, weapon_info)
         
         logger.opt(colors=True).info(
             f"{profile_display} 还有 <yellow>{len(remaining_weapons)}</> 把武器未获取完美基质"
         )
-        logger.info(f"待刷取武器列表: {'、'.join(sorted_weapons)}")
+        logger.info(f"待刷取武器列表: {formatted_weapons}")
         
         plans = find_best_plans(remaining_weapons, top_n=5)
         
@@ -118,14 +120,8 @@ def _log_farming_plans(profile_id: str) -> None:
         logger.info("=" * 60)
         
         for i, plan in enumerate(plans, 1):
-            sorted_satisfied = sorted(
-                plan.satisfied_weapons,
-                key=lambda w: (-rarity_map.get(w, 0), w)
-            )
-            sorted_location = sorted(
-                plan.location_weapons,
-                key=lambda w: (-rarity_map.get(w, 0), w)
-            )
+            formatted_satisfied = format_weapon_list(plan.satisfied_weapons, weapon_info)
+            formatted_location = format_weapon_list(plan.location_weapons, weapon_info)
             
             logger.info(f"")
             logger.opt(colors=True).info(f"<cyan>方案 {i}</>")
@@ -142,10 +138,10 @@ def _log_farming_plans(profile_id: str) -> None:
                 logger.opt(colors=True).info(
                     f"  <green>高星武器满足需求: {plan.high_star_satisfied_count} 把</>"
                 )
-            if sorted_satisfied:
-                logger.info(f"  满足需求武器: {'、'.join(sorted_satisfied)}")
-            if sorted_location:
-                logger.opt(colors=True).info(f"  <yellow>匹配地点武器</>: {'、'.join(sorted_location)}")
+            if plan.satisfied_weapons:
+                logger.info(f"  满足需求武器: {formatted_satisfied}")
+            if plan.location_weapons:
+                logger.opt(colors=True).info(f"  <yellow>匹配地点武器</>: {formatted_location}")
         
         logger.info("=" * 60)
         

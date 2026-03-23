@@ -10,6 +10,25 @@ from endfield_essence_recognizer.schemas.user_setting import (
     UserSetting,
 )
 
+WEAPON_TYPE_ORDER = {
+    "SWORD": 0,
+    "CLAYM": 1,
+    "LANCE": 2,
+    "PISTOL": 3,
+    "WAND": 4,
+}
+
+
+def sort_weapon_ids(weapon_ids: set, static_game_data: StaticGameData) -> list:
+    """按星级和武器类型排序武器ID列表"""
+    def sort_key(weapon_id: str):
+        weapon = static_game_data.get_weapon(weapon_id)
+        if weapon:
+            return (-weapon.rarity, WEAPON_TYPE_ORDER.get(weapon.weapon_type, 999), weapon.name)
+        return (0, 999, weapon_id)
+    
+    return sorted(weapon_ids, key=sort_key)
+
 
 def evaluate_essence(
     data: EssenceData,
@@ -123,11 +142,9 @@ def evaluate_essence(
         return f"<bold>{weapon.name}（{weapon.rarity}★ {type_name}）</>"
 
     if non_trash_weapon_ids:
-        # 只要有一个匹配武器未被拦截，就是宝藏
-
-        # 输出所有匹配到且未被拦截的武器列表
+        sorted_non_trash_ids = sort_weapon_ids(non_trash_weapon_ids, static_game_data)
         weapon_descriptions = [
-            format_weapon_description(wid) for wid in non_trash_weapon_ids
+            format_weapon_description(wid) for wid in sorted_non_trash_ids
         ]
         weapons_description_str = "、".join(weapon_descriptions)
 
@@ -138,11 +155,9 @@ def evaluate_essence(
             is_high_level=is_high_level_treasure,
         )
     else:
-        # 所有匹配到的武器都在 trash_weapon_ids 中
-
-        # 输出所有匹配到的武器列表
+        sorted_matched_ids = sort_weapon_ids(matched_weapon_ids, static_game_data)
         weapon_descriptions = [
-            format_weapon_description(wid) for wid in matched_weapon_ids
+            format_weapon_description(wid) for wid in sorted_matched_ids
         ]
         weapons_description_str = "、".join(weapon_descriptions)
 
