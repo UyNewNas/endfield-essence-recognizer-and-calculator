@@ -41,7 +41,7 @@ class WeaponInfo:
     
     @property
     def display_name(self) -> str:
-        return f"{self.name}（{self.rarity}星{self.weapon_type_name}）"
+        return f"{self.name}（{self.rarity}★ {self.weapon_type_name}）"
 
 
 @dataclass
@@ -128,6 +128,7 @@ def load_location_data() -> Dict[str, Dict[str, List[str]]]:
 
 
 def sort_weapons(weapon_names: List[str], weapon_info: Dict[str, WeaponInfo]) -> List[str]:
+    """按星级主排序，武器类型次排序"""
     def sort_key(name: str):
         info = weapon_info.get(name)
         if info:
@@ -137,7 +138,19 @@ def sort_weapons(weapon_names: List[str], weapon_info: Dict[str, WeaponInfo]) ->
     return sorted(weapon_names, key=sort_key)
 
 
+def sort_weapons_by_type(weapon_names: List[str], weapon_info: Dict[str, WeaponInfo]) -> List[str]:
+    """按武器类型主排序，星级次排序"""
+    def sort_key(name: str):
+        info = weapon_info.get(name)
+        if info:
+            return (WEAPON_TYPE_ORDER.get(info.weapon_type, 999), -info.rarity, name)
+        return (999, 0, name)
+    
+    return sorted(weapon_names, key=sort_key)
+
+
 def format_weapon_list(weapon_names: List[str], weapon_info: Dict[str, WeaponInfo]) -> str:
+    """格式化武器列表（不超过5个时使用）"""
     sorted_names = sort_weapons(weapon_names, weapon_info)
     formatted = []
     for name in sorted_names:
@@ -147,6 +160,58 @@ def format_weapon_list(weapon_names: List[str], weapon_info: Dict[str, WeaponInf
         else:
             formatted.append(name)
     return "、".join(formatted)
+
+
+def format_weapon_list_detailed(weapon_names: List[str], weapon_info: Dict[str, WeaponInfo]) -> List[str]:
+    """格式化武器列表（超过5个时使用），按武器类型分组输出，带颜色标签"""
+    sorted_names = sort_weapons_by_type(weapon_names, weapon_info)
+    
+    def get_rarity_format(rarity: int) -> Tuple[str, str]:
+        if rarity == 6:
+            return "<bold><yellow>", "</></>"
+        elif rarity == 5:
+            return "<yellow>", "</>"
+        elif rarity == 4:
+            return "<magenta>", "</>"
+        elif rarity == 3:
+            return "<blue>", "</>"
+        return "", ""
+    
+    type_groups: Dict[str, List[str]] = {}
+    for name in sorted_names:
+        info = weapon_info.get(name)
+        if info:
+            type_name = info.weapon_type_name
+            if type_name not in type_groups:
+                type_groups[type_name] = []
+            open_tag, close_tag = get_rarity_format(info.rarity)
+            type_groups[type_name].append(f"{name}（{open_tag}{info.rarity}★{close_tag}）")
+        else:
+            if "未知" not in type_groups:
+                type_groups["未知"] = []
+            type_groups["未知"].append(name)
+    
+    lines = []
+    for type_name in ["单手剑", "双手剑", "长柄武器", "手铳", "施术单元", "未知"]:
+        if type_name in type_groups:
+            lines.append(f"(<bold>{type_name}</>): {'、'.join(type_groups[type_name])}")
+    
+    return lines
+
+
+def format_weapon_list_auto(weapon_names: List[str], weapon_info: Dict[str, WeaponInfo]) -> Tuple[str, List[str]]:
+    """
+    自动选择格式化方式
+    返回: (单行格式, 多行格式列表)
+    如果不超过5个，多行格式列表为空
+    """
+    single_line = format_weapon_list(weapon_names, weapon_info)
+    
+    if len(weapon_names) <= 5:
+        return single_line, []
+    
+    multi_line = format_weapon_list_detailed(weapon_names, weapon_info)
+    return single_line, multi_line
 
 
 def find_best_plans(

@@ -75,8 +75,7 @@ def _log_farming_plans(profile_id: str) -> None:
         from endfield_essence_recognizer.services.essence_calculator import (
             load_weapon_info,
             find_best_plans,
-            format_weapon_list,
-            sort_weapons,
+            format_weapon_list_auto,
         )
         
         weapon_info = load_weapon_info()
@@ -101,13 +100,18 @@ def _log_farming_plans(profile_id: str) -> None:
             )
             return
         
-        sorted_weapons = sort_weapons(remaining_weapons, weapon_info)
-        formatted_weapons = format_weapon_list(remaining_weapons, weapon_info)
+        single_line, multi_line = format_weapon_list_auto(remaining_weapons, weapon_info)
         
-        logger.opt(colors=True).info(
-            f"{profile_display} 还有 <yellow>{len(remaining_weapons)}</> 把武器未获取完美基质"
-        )
-        logger.info(f"待刷取武器列表: {formatted_weapons}")
+        if multi_line:
+            logger.opt(colors=True).info(
+                f"{profile_display} 还有 <yellow>{len(remaining_weapons)}</> 把武器未获取完美基质，待刷取武器列表:"
+            )
+            for line in multi_line:
+                logger.opt(colors=True).info(f"  {line}")
+        else:
+            logger.opt(colors=True).info(
+                f"{profile_display} 还有 <yellow>{len(remaining_weapons)}</> 把武器未获取完美基质，待刷取武器列表: {single_line}"
+            )
         
         plans = find_best_plans(remaining_weapons, top_n=5)
         
@@ -120,9 +124,6 @@ def _log_farming_plans(profile_id: str) -> None:
         logger.info("=" * 60)
         
         for i, plan in enumerate(plans, 1):
-            formatted_satisfied = format_weapon_list(plan.satisfied_weapons, weapon_info)
-            formatted_location = format_weapon_list(plan.location_weapons, weapon_info)
-            
             logger.info(f"")
             logger.opt(colors=True).info(f"<cyan>方案 {i}</>")
             logger.info(f"  刷取地点: 重度能量淤积点·{plan.location}")
@@ -138,10 +139,24 @@ def _log_farming_plans(profile_id: str) -> None:
                 logger.opt(colors=True).info(
                     f"  <green>高星武器满足需求: {plan.high_star_satisfied_count} 把</>"
                 )
+            
             if plan.satisfied_weapons:
-                logger.info(f"  满足需求武器: {formatted_satisfied}")
+                sat_single, sat_multi = format_weapon_list_auto(plan.satisfied_weapons, weapon_info)
+                if sat_multi:
+                    logger.info(f"  满足需求武器:")
+                    for line in sat_multi:
+                        logger.opt(colors=True).info(f"    {line}")
+                else:
+                    logger.info(f"  满足需求武器: {sat_single}")
+            
             if plan.location_weapons:
-                logger.opt(colors=True).info(f"  <yellow>匹配地点武器</>: {formatted_location}")
+                loc_single, loc_multi = format_weapon_list_auto(plan.location_weapons, weapon_info)
+                if loc_multi:
+                    logger.opt(colors=True).info(f"  <yellow>匹配地点武器</>:")
+                    for line in loc_multi:
+                        logger.opt(colors=True).info(f"    {line}")
+                else:
+                    logger.opt(colors=True).info(f"  <yellow>匹配地点武器</>: {loc_single}")
         
         logger.info("=" * 60)
         

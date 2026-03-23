@@ -80,6 +80,7 @@ class UserProfileManager:
                     })
             except Exception:
                 continue
+        profiles.sort(key=lambda x: x["updated_at"], reverse=True)
         return profiles
     
     def delete_profile(self, profile_id: str) -> bool:

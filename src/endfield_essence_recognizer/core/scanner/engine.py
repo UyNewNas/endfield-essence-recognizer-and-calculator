@@ -25,6 +25,7 @@ from endfield_essence_recognizer.core.scanner.models import (
     EssenceQuality,
 )
 from endfield_essence_recognizer.core.window.adapter import InMemoryImageSource
+from endfield_essence_recognizer.game_data.static_game_data import StaticGameData
 from endfield_essence_recognizer.schemas.user_setting import UserSetting
 from endfield_essence_recognizer.services.user_setting_manager import UserSettingManager
 from endfield_essence_recognizer.utils.log import logger
@@ -382,10 +383,25 @@ class ScannerEngine:
                 for stats_names, weapon_names in treasure_weapons_found:
                     unique_weapons.update(weapon_names)
                 
-                logger.opt(colors=True).success(
-                    f"本次扫描发现 <green>{len(treasure_weapons_found)}</> 个宝藏基质，"
-                    f"完美契合武器: <magenta>{'、'.join(sorted(unique_weapons))}</>"
+                from endfield_essence_recognizer.services.essence_calculator import (
+                    load_weapon_info,
+                    format_weapon_list_auto,
                 )
+                
+                weapon_info = load_weapon_info()
+                weapon_list = list(unique_weapons)
+                single_line, multi_line = format_weapon_list_auto(weapon_list, weapon_info)
+                
+                if multi_line:
+                    logger.opt(colors=True).success(
+                        f"本次扫描发现 <green>{len(treasure_weapons_found)}</> 个宝藏基质，完美契合武器:"
+                    )
+                    for line in multi_line:
+                        logger.opt(colors=True).info(f"  {line}")
+                else:
+                    logger.opt(colors=True).success(
+                        f"本次扫描发现 <green>{len(treasure_weapons_found)}</> 个宝藏基质，完美契合武器: {single_line}"
+                    )
             
             if self._on_scan_complete:
                 try:

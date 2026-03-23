@@ -171,9 +171,12 @@ onMounted(async () => {
     const profileExists = profiles.value.some(p => p.id === lastProfile)
     if (profileExists) {
       selectedProfile.value = lastProfile
-    } else {
-      selectedProfile.value = 'temp'
+      return
     }
+  }
+  
+  if (profiles.value.length > 0) {
+    selectedProfile.value = profiles.value[0].id
   } else {
     selectedProfile.value = 'temp'
   }
