@@ -176,7 +176,7 @@ onMounted(async () => {
   }
   
   if (profiles.value.length > 0) {
-    selectedProfile.value = profiles.value[0].id
+    selectedProfile.value = profiles.value[0]!.id
   } else {
     selectedProfile.value = 'temp'
   }
